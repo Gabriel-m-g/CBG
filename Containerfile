@@ -58,6 +58,7 @@ x-scheme-handler/http=chromium-browser.desktop
 x-scheme-handler/https=chromium-browser.desktop
 text/html=chromium-browser.desktop
 EOF
+
 RUN cp /etc/xdg/mimeapps.list /etc/xdg/kde-mimeapps.list
 
 # ---------------------------------------------------------------
