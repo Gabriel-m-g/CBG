@@ -33,33 +33,12 @@ RUN mkdir -p /etc/chromium && \
 # ---------------------------------------------------------------
 # 4. Visualizador padrao: Chromium em modo app, sem abas
 # ---------------------------------------------------------------
-RUN cat > /usr/share/applications/cbg-viewer.desktop <<'EOF'
-[Desktop Entry]
-Type=Application
-Name=Visualizador CBG
-Exec=chromium-browser --app=%u
-Icon=chromium-browser
-NoDisplay=true
-MimeType=application/pdf;image/png;image/jpeg;image/gif;image/webp;image/svg+xml;video/mp4;video/webm;video/x-matroska;
-EOF
+RUN echo '[Desktop Entry]' > /usr/share/applications/cbg-viewer.desktop && \
+    echo 'Type=Application\nName=Visualizador CBG\nExec=chromium --app=%u\nIcon=chromium\nNoDisplay=true' >> /usr/share/applications/cbg-viewer.desktop
 
-RUN cat > /etc/xdg/mimeapps.list <<'EOF'
-[Default Applications]
-application/pdf=cbg-viewer.desktop
-image/png=cbg-viewer.desktop
-image/jpeg=cbg-viewer.desktop
-image/gif=cbg-viewer.desktop
-image/webp=cbg-viewer.desktop
-image/svg+xml=cbg-viewer.desktop
-video/mp4=cbg-viewer.desktop
-video/webm=cbg-viewer.desktop
-video/x-matroska=cbg-viewer.desktop
-x-scheme-handler/http=chromium-browser.desktop
-x-scheme-handler/https=chromium-browser.desktop
-text/html=chromium-browser.desktop
-EOF
-
-RUN cp /etc/xdg/mimeapps.list /etc/xdg/kde-mimeapps.list
+RUN echo '[Default Applications]' > /etc/xdg/mimeapps.list && \
+    echo 'application/pdf=cbg-viewer.desktop\nx-scheme-handler/http=chromium.desktop\nx-scheme-handler/https=chromium.desktop' >> /etc/xdg/mimeapps.list && \
+    cp /etc/xdg/mimeapps.list /etc/xdg/kde-mimeapps.list
 
 # ---------------------------------------------------------------
 # 5. Atalho do Google Calendar (para fixar no painel)
