@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Abrir calendario
+Exec=chromium-browser --app=https://calendar.google.com
+Icon=office-calendar
+Categories=Office;Calendar;
