@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Visualizador CBG
+Exec=chromium --app=%u
+Icon=chromium
+NoDisplay=true
