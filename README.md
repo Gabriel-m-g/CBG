@@ -71,7 +71,3 @@ podman build -t localhost/cbg:latest -f Containerfile .
 - Menu de configurações simples
 - Variante mínima com Sway ou labwc
 - Perfil "prova", com sessão restrita e rede limitada
-
-## Licença
-
-Veja o arquivo `LICENSE`.
