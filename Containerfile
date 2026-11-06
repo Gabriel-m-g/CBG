@@ -31,63 +31,32 @@ RUN mkdir -p /etc/chromium && \
     echo 'CHROMIUM_FLAGS="--ozone-platform-hint=auto"' > /etc/chromium/chromium.conf
 
 # ---------------------------------------------------------------
-# 4. Visualizador padrao: Chromium em modo app, sem abas
+# 4. Visualizador padrao e atalho do Google Calendar
 # ---------------------------------------------------------------
-RUN echo '[Desktop Entry]' > /usr/share/applications/cbg-viewer.desktop && \
-    echo 'Type=Application\nName=Visualizador CBG\nExec=chromium --app=%u\nIcon=chromium\nNoDisplay=true' >> /usr/share/applications/cbg-viewer.desktop
-
-RUN echo '[Default Applications]' > /etc/xdg/mimeapps.list && \
-    echo 'application/pdf=cbg-viewer.desktop\nx-scheme-handler/http=chromium.desktop\nx-scheme-handler/https=chromium.desktop' >> /etc/xdg/mimeapps.list && \
-    cp /etc/xdg/mimeapps.list /etc/xdg/kde-mimeapps.list
+COPY files/cbg-viewer.desktop files/cbg-calendar.desktop /usr/share/applications/
+COPY files/mimeapps.list /etc/xdg/mimeapps.list
+COPY files/mimeapps.list /etc/xdg/kde-mimeapps.list
 
 # ---------------------------------------------------------------
-# 5. Atalho do Google Calendar (para fixar no painel)
-# ---------------------------------------------------------------
-RUN cat > /usr/share/applications/cbg-calendar.desktop <<'EOF'
-[Desktop Entry]
-Type=Application
-Name=Abrir calendario
-Exec=chromium-browser --app=https://calendar.google.com
-Icon=office-calendar
-Categories=Office;Calendar;
-EOF
-
-# ---------------------------------------------------------------
-# 6. Google Drive no Dolphin via rclone (servico de usuario)
+# 5. Google Drive no Dolphin via rclone (servico de usuario)
 #    Antes de ativar: rodar "rclone config" e criar o remote "gdrive"
 #    (use seu proprio client ID do Google).
 #    Ativar com: systemctl --user enable --now rclone-gdrive.service
 # ---------------------------------------------------------------
-RUN cat > /usr/lib/systemd/user/rclone-gdrive.service <<'EOF'
-[Unit]
-Description=Google Drive (rclone mount)
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=notify
-ExecStartPre=/usr/bin/mkdir -p %h/Drive
-ExecStart=/usr/bin/rclone mount gdrive: %h/Drive --vfs-cache-mode full
-ExecStop=/usr/bin/fusermount3 -u %h/Drive
-Restart=on-failure
-
-[Install]
-WantedBy=default.target
-EOF
+COPY files/rclone-gdrive.service /usr/lib/systemd/user/rclone-gdrive.service
 
 # ---------------------------------------------------------------
-# 7. Waydroid (A TESTAR: binder pode nao estar disponivel no kernel)
+# 6. Waydroid (A TESTAR: binder pode nao estar disponivel no kernel)
 #    Teste no host: lsmod | grep binder ; ls /dev/binderfs
 # ---------------------------------------------------------------
 RUN systemctl enable waydroid-container.service || true
 
 # ---------------------------------------------------------------
-# 8. Painel do Plasma (painel inferior, sem agrupamento, PWAs fixados)
-#    TODO: definir em um layout do Plasma, em etapa posterior.
+# 7. Painel do Plasma (TODO: definir em um layout do Plasma)
 # ---------------------------------------------------------------
 
 # ---------------------------------------------------------------
-# 9. Flathub ja configurado (sistema inteiro)
+# 8. Flathub ja configurado (sistema inteiro)
 #    VERIFICAR: confirme que o flatpak le /etc/flatpak/remotes.d/ nesta versao
 # ---------------------------------------------------------------
 RUN mkdir -p /etc/flatpak/remotes.d && \
@@ -95,21 +64,9 @@ RUN mkdir -p /etc/flatpak/remotes.d && \
       https://dl.flathub.org/repo/flathub.flatpakrepo
 
 # ---------------------------------------------------------------
-# 10. Montar discos sem pedir senha (so para o grupo wheel, sessao local e ativa)
+# 9. Montar discos sem pedir senha (so para o grupo wheel, sessao local e ativa)
 # ---------------------------------------------------------------
-RUN mkdir -p /etc/polkit-1/rules.d && cat > /etc/polkit-1/rules.d/50-cbg-udisks.rules <<'EOF'
-polkit.addRule(function(action, subject) {
-  var ids = [
-    "org.freedesktop.udisks2.filesystem-mount",
-    "org.freedesktop.udisks2.filesystem-mount-system",
-    "org.freedesktop.udisks2.filesystem-unmount-others"
-  ];
-  if (ids.indexOf(action.id) >= 0 &&
-      subject.isInGroup("wheel") && subject.local && subject.active) {
-    return polkit.Result.YES;
-  }
-});
-EOF
+COPY files/50-cbg-udisks.rules /etc/polkit-1/rules.d/50-cbg-udisks.rules
 
 # Usuario temporario para testar na VM (trocar a senha depois)
 RUN useradd -m -G wheel samuel && echo 'samuel:troque-isto' | chpasswd
