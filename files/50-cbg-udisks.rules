@@ -1,0 +1,11 @@
+polkit.addRule(function(action, subject) {
+  var ids = [
+    "org.freedesktop.udisks2.filesystem-mount",
+    "org.freedesktop.udisks2.filesystem-mount-system",
+    "org.freedesktop.udisks2.filesystem-unmount-others"
+  ];
+  if (ids.indexOf(action.id) >= 0 &&
+      subject.isInGroup("wheel") && subject.local && subject.active) {
+    return polkit.Result.YES;
+  }
+});
